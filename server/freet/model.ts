@@ -1,5 +1,6 @@
-import type {Types} from 'mongoose';
+import type {Types, PopulatedDoc, Document} from 'mongoose';
 import {Schema, model} from 'mongoose';
+import { Profile } from 'profile/model';
 import type {User} from '../user/model';
 
 /**
@@ -49,7 +50,7 @@ const FreetSchema = new Schema<Freet>({
   dateModified: {
     type: Date,
     required: true
-  }
+  },
 });
 
 const FreetModel = model<Freet>('Freet', FreetSchema);

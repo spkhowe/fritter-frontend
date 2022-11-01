@@ -1,5 +1,6 @@
 import type {Types} from 'mongoose';
 import {Schema, model} from 'mongoose';
+import {Profile} from '../profile/model';
 
 /**
  * This file defines the properties stored in a User
@@ -12,6 +13,7 @@ export type User = {
   username: string;
   password: string;
   dateJoined: Date;
+  followingIds: [Profile];
 };
 
 // Mongoose schema definition for interfacing with a MongoDB table
@@ -32,7 +34,12 @@ const UserSchema = new Schema({
   dateJoined: {
     type: Date,
     required: true
-  }
+  },
+  followingIds: {
+    type: [Schema.Types.ObjectId],
+    required: false,
+    ref: 'Profile' // Is this right?
+},
 });
 
 const UserModel = model<User>('User', UserSchema);
