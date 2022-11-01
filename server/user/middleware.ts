@@ -1,5 +1,6 @@
 import type {Request, Response, NextFunction} from 'express';
 import UserCollection from '../user/collection';
+import ProfileCollection from '../profile/collection';
 
 /**
  * Checks if the current session user (if any) still exists in the database, for instance,
@@ -144,6 +145,27 @@ const isAuthorExists = async (req: Request, res: Response, next: NextFunction) =
   next();
 };
 
+/**
+ * Checks if a user with userId as username in req.query exists
+ */
+ const isUserExists = async (req: Request, res: Response, next: NextFunction) => {
+  if (!req.query.username) {
+    res.status(400).json({
+      error: 'Provided user username must be nonempty.'
+    });
+    return;
+  }
+  const user = await UserCollection.findOneByUsername(req.query.username as string);
+  if (!user) {
+    res.status(404).json({
+      error: `A user with username ${req.query.username as string} does not exist.`
+    });
+    return;
+  }
+
+  next();             
+};
+
 export {
   isCurrentSessionUserExists,
   isUserLoggedIn,
@@ -152,5 +174,6 @@ export {
   isAccountExists,
   isAuthorExists,
   isValidUsername,
-  isValidPassword
+  isValidPassword,
+  isUserExists
 };
