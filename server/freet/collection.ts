@@ -3,7 +3,7 @@ import type {Freet} from './model';
 import FreetModel from './model';
 import UserCollection from '../user/collection';
 import ProfileCollection from '../profile/collection';
-import ProfileModel from 'profile/model';
+import ProfileModel from '../profile/model';
 
 /**
  * This files contains a class that has the functionality to explore freets
@@ -63,7 +63,7 @@ class FreetCollection {
    */
   static async findAllByUsername(username: string): Promise<Array<HydratedDocument<Freet>>> {
     const author = await UserCollection.findOneByUsername(username);
-    return FreetModel.find({authorId: author._id}).populate('authorId');
+    return FreetModel.find({authorId: author._id}).sort({dateModified: -1}).populate('authorId');
   }
 
   /**

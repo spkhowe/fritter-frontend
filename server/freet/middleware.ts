@@ -11,7 +11,7 @@ const isFreetExists = async (req: Request, res: Response, next: NextFunction) =>
   if (!freet) {
     res.status(404).json({
       error: {
-        freetNotFound: `Freet with freet ID ${req.params.freetId} does not exist. is this it`
+        freetNotFound: `Freet with freet ID ${req.params.freetId} does not exist.`
       }
     });
     return;

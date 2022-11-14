@@ -3,8 +3,8 @@ import type {Profile} from './model';
 import ProfileModel from './model';
 import UserCollection from '../user/collection';
 import UserModel from '../user/model';
-import { userRouter } from 'user/router';
-import { isUserLoggedOut } from 'user/middleware';
+import { userRouter } from '../user/router';
+import { isUserLoggedOut } from '../user/middleware';
 
 class ProfileCollection {
     /**
