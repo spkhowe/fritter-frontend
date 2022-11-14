@@ -4,10 +4,10 @@ import type {User} from '../user/model';
 
 export type Profile = {
     _id: Types.ObjectId; // MongoDB assigns each object this ID on creation
-    users: [String]; // Usernames that have access to this profile.
-    profileName: String; // Name that is displayed
-    profileHandle: String; // defaults to username for individual profile;
-    bio: String;
+    users: [Types.ObjectId]; // Usernames that have access to this profile.
+    profileName: string; // Name that is displayed
+    profileHandle: string; // defaults to username for individual profile;
+    bio: string;
     personal: Boolean; // If personal, only one person can access
     followerIds: [Types.ObjectId];
   };
@@ -15,20 +15,21 @@ export type Profile = {
 
 export type PopulatedProfile = {
     _id: Types.ObjectId;
-    users: [String];
-    profileName: String;
-    profileHandle: String;
-    bio: String;
+    users: [User];
+    profileName: string;
+    profileHandle: string;
+    bio: string;
     personal: Boolean;
     followerIds: [User];
 }
 
 const ProfileSchema = new Schema<Profile>({
     // The author userId
-    users: {
+    users: { //maybe switch this to be populated with actual User objects 
       // Use Types.ObjectId outside of the schema
-      type: [String],
-      required: true
+      type: [Schema.Types.ObjectId],
+      required: true,
+      ref: 'User'
       },
     // The name to be displayed on the profile
     profileName: {

@@ -4,13 +4,13 @@ import type {Profile, PopulatedProfile} from './model';
 
 // Update this if you add a property to the Freet type!
 type ProfileResponse = {
-  _id: String;
-  users: String[];
-  profileName: String;
-  profileHandle: String;
-  bio: String;
-  personal: String;
-  followerIds: String[];
+  _id: string;
+  users: string[];
+  profileName: string;
+  profileHandle: string;
+  bio: string;
+  personal: string;
+  followerIds: string[];
 };
 
 
@@ -27,10 +27,11 @@ const constructProfileResponse = (profile: HydratedDocument<Profile>): ProfileRe
       versionKey: false // Cosmetics; prevents returning of __v property
     })
   };
+  const usernames = profileCopy.users.map(i => i.username)
   return {
     ...profileCopy,
     _id: profileCopy._id.toString(),
-    users: profileCopy.users.map(toString),
+    users: usernames,
     profileName: profileCopy.profileName,
     profileHandle: profileCopy.profileHandle,
     bio: profileCopy.bio,

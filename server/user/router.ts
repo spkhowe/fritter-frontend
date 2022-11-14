@@ -4,29 +4,10 @@ import FreetCollection from '../freet/collection';
 import UserCollection from './collection';
 import * as userValidator from '../user/middleware';
 import * as util from './util';
+import ProfileCollection from '../profile/collection';
+import * as ProfileUtil from '../profile/util';
 
 const router = express.Router();
-
-/**
- * Get the signed in user
- * TODO: may need better route and documentation
- * (so students don't accidentally delete this when copying over)
- *
- * @name GET /api/users/session
- *
- * @return - currently logged in user, or null if not logged in
- */
-router.get(
-  '/session',
-  [],
-  async (req: Request, res: Response) => {
-    const user = await UserCollection.findOneByUserId(req.session.userId);
-    res.status(200).json({
-      message: 'Your session info was found successfully.',
-      user: user ? util.constructUserResponse(user) : null
-    });
-  }
-);
 
 /**
  * Sign in user.
@@ -107,10 +88,13 @@ router.post(
   ],
   async (req: Request, res: Response) => {
     const user = await UserCollection.addOne(req.body.username, req.body.password);
+    // const profile = await ProfileCollection.addOne(user._id, req.body.username, true, undefined, undefined);
+    const personalProfile = await ProfileCollection.addOne(user._id, req.body.username, true, undefined, undefined);
     req.session.userId = user._id.toString();
     res.status(201).json({
-      message: `Your account was created successfully. You have been logged in as ${user.username}`,
-      user: util.constructUserResponse(user)
+      message: `Your account and personal profile were created successfully. You have been logged in as ${user.username} / ${personalProfile.profileHandle}`,
+      user: util.constructUserResponse(user),
+      profile: ProfileUtil.constructProfileResponse(personalProfile)
     });
   }
 );
@@ -118,7 +102,7 @@ router.post(
 /**
  * Update a user's profile.
  *
- * @name PATCH /api/users
+ * @name PUT /api/users
  *
  * @param {string} username - The user's new username
  * @param {string} password - The user's new password
@@ -127,7 +111,7 @@ router.post(
  * @throws {409} - If username already taken
  * @throws {400} - If username or password are not of the correct format
  */
-router.patch(
+router.put(
   '/',
   [
     userValidator.isUserLoggedIn,
@@ -137,6 +121,8 @@ router.patch(
   ],
   async (req: Request, res: Response) => {
     const userId = (req.session.userId as string) ?? ''; // Will not be an empty string since its validated in isUserLoggedIn
+    const oldUsername = await UserCollection.findOneByUserId(userId);
+    const profile = await ProfileCollection.updateOne(userId, req.body)
     const user = await UserCollection.updateOne(userId, req.body);
     res.status(200).json({
       message: 'Your profile was updated successfully.',
@@ -160,11 +146,14 @@ router.delete(
   ],
   async (req: Request, res: Response) => {
     const userId = (req.session.userId as string) ?? ''; // Will not be an empty string since its validated in isUserLoggedIn
+    const user = await UserCollection.findOneByUserId(userId);
+    const username = user.username
     await UserCollection.deleteOne(userId);
     await FreetCollection.deleteMany(userId);
+    await ProfileCollection.deleteAllByUsername(username);
     req.session.userId = undefined;
     res.status(200).json({
-      message: 'Your account has been deleted successfully.'
+      message: 'Your account and personal profile have been deleted successfully.'
     });
   }
 );

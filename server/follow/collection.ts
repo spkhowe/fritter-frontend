@@ -2,7 +2,7 @@ import type {HydratedDocument, Types} from 'mongoose';
 import type {Follow, PopulatedFollow} from './model';
 import FavoriteModel from './model';
 import UserCollection from '../user/collection';
-import FreetCollection from 'freet/collection';
+import FreetCollection from '../freet/collection';
 import UserModel from '../user/model';
 import FollowModel from './model';
 import ProfileCollection from '../profile/collection';

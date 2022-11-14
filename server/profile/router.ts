@@ -6,6 +6,7 @@ import ProfileCollection from './collection';
 import * as ProfileValidator from '../profile/middleware'
 import * as UserValidator from '../user/middleware'
 import UserModel from '../user/model';
+import ProfileModel from './model';
 
 const router = express.Router();
 
@@ -33,21 +34,23 @@ router.get(
           return;
         }
         // otherwise get all profiles the current user is a part of 
-        console.log("session:", req.session)
         const userId = req.session.userId || "";
         const user = await UserModel.findOne({_id: userId});
-        const allProfiles = await ProfileCollection.findAllByUser(user.username);
-        const response = allProfiles.map(ProfileUtil.constructProfileResponse);
-        res.status(200).json(response);
+        const allProfiles = await ProfileCollection.findAllByUser(user._id);
+        // const response = allProfiles.map(ProfileUtil.constructProfileResponse);
+        res.status(200).json({
+          message: "Got all profiles",
+          profiles: allProfiles.map(ProfileUtil.constructProfileResponse)
+        })
       },
     [
         UserValidator.isUserLoggedIn,
-        ProfileValidator.isProfileExists
+        ProfileValidator.isProfileExists,
+        ProfileValidator.isMemberOfProfile
     ],
     async (req: Request, res: Response) => {
         const profile = await ProfileCollection.findOneByUsername(req.query.username as string);
         const response = ProfileUtil.constructProfileResponse(profile);
-        console.log("Profile:", profile)
         res.status(200).json(response);
       }
 )
@@ -82,6 +85,33 @@ router.get(
   );
 
 /**
+ * Update a profile.
+ * 
+ * @name PUT /api/profiles
+ * 
+ * @return {ProfileResponse} - the updated profile 
+ */
+router.put(
+  '/',
+  [
+    UserValidator.isUserLoggedIn,
+    UserValidator.isValidUsername,
+    UserValidator.isUsernameNotAlreadyInUse
+    // can delete user 
+    // can add user 
+  ],
+  async (req: Request, res: Response) => {
+    const userId = (req.session.userId as string) ?? '';
+    const profile = await ProfileCollection.updateOne(userId, req.body)
+    res.status(200).json({
+      message: "Your profile was updated successfully",
+      profile: ProfileUtil.constructProfileResponse(profile)
+    })
+  }
+);
+
+
+/**
  * Delete a profile.
  *
  * @name DELETE /api/profiles/:username
@@ -93,12 +123,14 @@ router.delete(
     '/:username?',
     [
       UserValidator.isUserLoggedIn,
-      ProfileValidator.isMemberOfProfile
+      ProfileValidator.isMemberOfProfile,
+      ProfileValidator.isNotPersonalProfile
     ],
     async (req: Request, res: Response) => {
       ProfileCollection.deleteAllByUsername(req.params.username)
+      // ProfileCollection.deleteAllByUsername(req.params.username)
       res.status(200).json({
-        message: 'Your account has been deleted successfully.'
+        message: 'Your group profile has been deleted successfully.'
       });
     }
   );

@@ -3,6 +3,7 @@ import express from 'express';
 import FreetCollection from './collection';
 import * as userValidator from '../user/middleware';
 import * as freetValidator from '../freet/middleware';
+import * as profileValidator from '../profile/middleware';
 import * as util from './util';
 
 const router = express.Router();
@@ -11,40 +12,43 @@ const router = express.Router();
  * Get all the freets
  *
  * @name GET /api/freets
- *
+ *r
  * @return {FreetResponse[]} - A list of all the freets sorted in descending
  *                      order by date modified
  */
 /**
- * Get freets by author.
+ * Get freets by author. This will be displayed on the users personal profile 
  *
- * @name GET /api/freets?author=username
+ * @name GET /api/freets?authorId=id&profile=username
  *
- * @return {FreetResponse[]} - An array of freets created by user with username, author
- * @throws {400} - If author is not given
- * @throws {404} - If no user has given author
+ * @return {FreetResponse[]} - An array of freets created by user with id, authorId
+ * @throws {400} - If authorId is not given
+ * @throws {404} - If no user has given authorId
  *
  */
 router.get(
   '/',
   async (req: Request, res: Response, next: NextFunction) => {
-    // Check if author query parameter was supplied
-    if (req.query.author !== undefined) {
+    // Check if authorId query parameter was supplied
+    if (req.query.author !== undefined || req.query.username != undefined) { //username = profileHandle
       next();
       return;
     }
-
     const allFreets = await FreetCollection.findAll();
     const response = allFreets.map(util.constructFreetResponse);
     res.status(200).json(response);
   },
   [
-    userValidator.isAuthorExists
+    userValidator.isAuthorExists,
+    profileValidator.isProfileExists
   ],
   async (req: Request, res: Response) => {
     const authorFreets = await FreetCollection.findAllByUsername(req.query.author as string);
-    const response = authorFreets.map(util.constructFreetResponse);
-    res.status(200).json(response);
+    // const response = authorFreets.map(util.constructFreetResponse);
+    res.status(200).json({
+      freets: authorFreets.map(util.constructFreetResponse)
+    })
+    // res.status(200).json(response);
   }
 );
 
@@ -63,12 +67,13 @@ router.post(
   '/',
   [
     userValidator.isUserLoggedIn,
-    freetValidator.isValidFreetContent
+    freetValidator.isValidFreetContent,
+    profileValidator.isValidProfile,
+    profileValidator.isMemberOfProfile, // Make sure profile handle is passed in as username for req.params.username
   ],
   async (req: Request, res: Response) => {
     const userId = (req.session.userId as string) ?? ''; // Will not be an empty string since its validated in isUserLoggedIn
-    const freet = await FreetCollection.addOne(userId, req.body.content);
-
+    const freet = await FreetCollection.addOne(userId, req.body.username, req.body.content);
     res.status(201).json({
       message: 'Your freet was created successfully.',
       freet: util.constructFreetResponse(freet)
@@ -104,7 +109,7 @@ router.delete(
 /**
  * Modify a freet
  *
- * @name PATCH /api/freets/:id
+ * @name PUT /api/freets/:id
  *
  * @param {string} content - the new content for the freet
  * @return {FreetResponse} - the updated freet
@@ -114,7 +119,7 @@ router.delete(
  * @throws {400} - If the freet content is empty or a stream of empty spaces
  * @throws {413} - If the freet content is more than 140 characters long
  */
-router.patch(
+router.put(
   '/:freetId?',
   [
     userValidator.isUserLoggedIn,
