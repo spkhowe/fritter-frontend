@@ -42,6 +42,7 @@ const router = express.Router();
       }
       const allFavorites = await FavoriteCollection.findAll(); 
       const response = allFavorites.map(util.constructFavoriteResponse);
+
       res.status(200).json(response);
 
     },
@@ -49,9 +50,14 @@ const router = express.Router();
       favoriteValidator.isFreetExists 
     ],
     async (req: Request, res: Response) => {
-      const freetFavs = await FavoriteCollection.findAllByFreet(req.query.freetId as string);
-      const response = freetFavs.map(util.constructFavoriteResponse);
-      res.status(200).json(response);
+    //   const freetFavs = await FavoriteCollection.findAllByFreet(req.query.freetId as string);
+    //   const response = freetFavs.map(util.constructFavoriteResponse);
+      const favorite = await FavoriteCollection.findOne(req.query.freetId as string, req.session.userId);
+      if (favorite) {
+          res.status(200).json({'message': true})
+      } else {
+          res.status(200).json({'message': false})
+      }
     }
   );
 

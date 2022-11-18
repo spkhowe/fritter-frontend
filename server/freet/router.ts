@@ -43,11 +43,13 @@ router.get(
     profileValidator.isProfileExists
   ],
   async (req: Request, res: Response) => {
-    const authorFreets = await FreetCollection.findAllByUsername(req.query.author as string);
-    // const response = authorFreets.map(util.constructFreetResponse);
-    res.status(200).json({
-      freets: authorFreets.map(util.constructFreetResponse)
-    })
+    const search = req.query.author || req.query.username;
+    const authorFreets = await FreetCollection.findAllByUsername(search as string);
+    const response = authorFreets.map(util.constructFreetResponse);
+    res.status(200).json(response);
+    // res.status(200).json({
+    //   freets: authorFreets.map(util.constructFreetResponse)
+    // })
     // res.status(200).json(response);
   }
 );

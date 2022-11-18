@@ -16,6 +16,12 @@ import ProfileCollection from '../profile/collection';
  * and contains all the information in Favorite. https://mongoosejs.com/docs/typescript.html
  */
  class FollowCollection {
+
+    static async findOne(userId: Types.ObjectId | string, username: string): Promise<HydratedDocument<Follow>> {
+        const profile = await ProfileCollection.findOneByUsername(username);
+        return FollowModel.findOne({userId: userId, profileId: profile._id}).populate('userId profileId')
+    }
+
     /**
      * Add a follow to a profile
      * @param {Types.ObjectId} userId - user 

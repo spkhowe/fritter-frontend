@@ -10,7 +10,7 @@ import FavoriteModel from './model';
 const isFreetExists = async (req: Request, res: Response, next: NextFunction) => {
   const freetId = req.body.freetId || req.query.freetId;
   const validFormat = Types.ObjectId.isValid(freetId);
-  const freet = validFormat ? await FreetCollection.findOne(req.body.freetId) : '';
+  const freet = validFormat ? await FreetCollection.findOne(freetId) : '';
   if (!freet) {
     res.status(404).json({
       error: {

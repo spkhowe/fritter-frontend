@@ -32,7 +32,6 @@ class HomepageCollection {
     static async followingProfile(freet: Freet, following: Types.ObjectId[]) {
 
         if (following.includes(freet.authorId._id)) {
-            console.log("inside the check")
             const user = await UserCollection.findOneByUserId(freet.authorId);
             return true;
         }

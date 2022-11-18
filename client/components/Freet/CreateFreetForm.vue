@@ -12,9 +12,10 @@ export default {
       method: 'POST',
       hasBody: true,
       fields: [
-        {id: 'content', label: 'Content', value: ''}
+        {id: 'content', label: 'Content', value: ''},
+        {id: 'username', label: 'Profile', value: ''}
       ],
-      title: 'Create a freet',
+      title: 'Freet',
       refreshFreets: true,
       callback: () => {
         const message = 'Successfully created a freet!';

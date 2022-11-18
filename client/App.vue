@@ -13,7 +13,7 @@ import NavBar from '@/components/common/NavBar.vue';
 export default {
   name: 'App',
   components: {NavBar},
-  beforeCreate() {
+  beforeCreate() { //load in the username from store before APp is mounted 
     // Sync stored username to current session
     fetch('/api/users/session', {
       credentials: 'same-origin' // Sends express-session credentials with request
@@ -40,6 +40,7 @@ body {
   padding: 0;
   margin: 0;
   font-size: 1.2em;
+  font-family: Arial, Helvetica, sans-serif;
 }
 
 main {
@@ -74,4 +75,6 @@ main {
 .alerts .success {
     background-color: rgb(45, 135, 87);
 }
+
+
 </style>

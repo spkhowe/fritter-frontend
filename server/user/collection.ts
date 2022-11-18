@@ -100,4 +100,3 @@ class UserCollection {
 }
 
 export default UserCollection;
-3

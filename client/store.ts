@@ -12,7 +12,8 @@ const store = new Vuex.Store({
     filter: null, // Username to filter shown freets by (null = show all)
     freets: [], // All freets created in the app
     username: null, // Username of the logged in user
-    alerts: {} // global success/error messages encountered during submissions to non-visible forms
+    alerts: {}, // global success/error messages encountered during submissions to non-visible forms
+    profiles: [] // All profiles that the user is a part of 
   },
   mutations: {
     alert(state, payload) {
@@ -52,6 +53,12 @@ const store = new Vuex.Store({
       const url = state.filter ? `/api/users/${state.filter}/freets` : '/api/freets';
       const res = await fetch(url).then(async r => r.json());
       state.freets = res;
+    },
+    updateProfiles(state, profiles) {
+      /** Update the stored profiles to the provided profiles
+       * @param profiles - profiles to store 
+      */
+     state.profiles = profiles
     }
   },
   // Store data across page refreshes, only discard on browser close

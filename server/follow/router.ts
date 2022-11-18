@@ -1,4 +1,4 @@
-import type {NextFunction, Request, Response} from 'express';
+import {NextFunction, Request, response, Response} from 'express';
 import express from 'express';
 import * as userValidator from '../user/middleware';
 import * as freetValidator from '../freet/middleware';
@@ -32,19 +32,26 @@ const router = express.Router();
  router.get(
     '/',
     async (req: Request, res: Response, next: NextFunction) => {
-      //xCheck if profile username was given 
+      // check if session user is following this profile 
       if (req.query.username !== undefined) { 
         next();
         return;
       }
     },
     [
-      userValidator.isUserExists
+      profileValidator.isProfileExists,
+      userValidator.isUserLoggedIn
     ],
     async (req: Request, res: Response) => {
-      const userFollowing = await FollowCollection.findAllFollowing(req.query.username as string);
-      const response = userFollowing.map(FollowUtil.constructFollowResponse);
-      res.status(200).json(response);
+      // const userFollowing = await FollowCollection.findAllFollowing(req.query.username as string);
+      // const response = userFollowing.map(FollowUtil.constructFollowResponse);
+      const follow = await FollowCollection.findOne(req.session.userId, req.query.username as string)
+      if (follow){
+        const response = FollowUtil.constructFollowResponse(follow);
+        res.status(200).json({'message': true});
+      } else {
+        res.status(200).json({'message': false})
+      }
     }
   );
 
@@ -129,9 +136,9 @@ const router = express.Router();
     ],
     async (req: Request, res: Response) => {
         const userId = (req.session.userId as string) ?? ''; // Will not be an empty string since its validated in isUserLoggedIn
-        await FollowCollection.deleteOne(userId, req.params.username); 
+        await FollowCollection.deleteOne(userId, req.body.username); 
         res.status(200).json({
-            message: `Successfully unfollowed this profile ${req.params.username}`
+            message: `Successfully unfollowed this profile ${req.body.username}`
         });
 
     }

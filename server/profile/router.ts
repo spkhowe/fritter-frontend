@@ -2,11 +2,13 @@ import type {NextFunction, Request, Response} from 'express';
 import express from 'express';
 import { Types } from 'mongoose';
 import * as ProfileUtil from './util';
+import * as UserUtil from '../user/util';
 import ProfileCollection from './collection';
 import * as ProfileValidator from '../profile/middleware'
 import * as UserValidator from '../user/middleware'
 import UserModel from '../user/model';
 import ProfileModel from './model';
+import UserCollection from '../user/collection';
 
 const router = express.Router();
 
@@ -37,20 +39,23 @@ router.get(
         const userId = req.session.userId || "";
         const user = await UserModel.findOne({_id: userId});
         const allProfiles = await ProfileCollection.findAllByUser(user._id);
-        // const response = allProfiles.map(ProfileUtil.constructProfileResponse);
-        res.status(200).json({
-          message: "Got all profiles",
-          profiles: allProfiles.map(ProfileUtil.constructProfileResponse)
-        })
+        const response = allProfiles.map(ProfileUtil.constructProfileResponse);
+        res.status(200).json(response);
+        // res.status(200).json({
+        //   message: "Got all profiles",
+        //   profiles: allProfiles.map(ProfileUtil.constructProfileResponse)
+        // })
       },
     [
         UserValidator.isUserLoggedIn,
-        ProfileValidator.isProfileExists,
-        ProfileValidator.isMemberOfProfile
+        ProfileValidator.isProfileExists
+        // ProfileValidator.isMemberOfProfile
     ],
     async (req: Request, res: Response) => {
         const profile = await ProfileCollection.findOneByUsername(req.query.username as string);
-        const response = ProfileUtil.constructProfileResponse(profile);
+  
+        const response = [profile].map(ProfileUtil.constructProfileResponse);
+        // const response = ProfileUtil.constructProfileResponse(profile);
         res.status(200).json(response);
       }
 )
@@ -96,15 +101,16 @@ router.put(
   [
     UserValidator.isUserLoggedIn,
     UserValidator.isValidUsername,
-    UserValidator.isUsernameNotAlreadyInUse
-    // can delete user 
-    // can add user 
+    // UserValidator.isUsernameNotAlreadyInUse
+    // is user part of profile
+    // can delete user -- DO THIS!!
+    ProfileValidator.isValidChange
+    // can add user -- DO THIS!!
   ],
   async (req: Request, res: Response) => {
     const userId = (req.session.userId as string) ?? '';
     const profile = await ProfileCollection.updateOne(userId, req.body)
     res.status(200).json({
-      message: "Your profile was updated successfully",
       profile: ProfileUtil.constructProfileResponse(profile)
     })
   }

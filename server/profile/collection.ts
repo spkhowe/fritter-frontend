@@ -1,5 +1,6 @@
 import type {HydratedDocument, Types} from 'mongoose';
 import type {Profile} from './model';
+import type {User} from '../user/model';
 import ProfileModel from './model';
 import UserCollection from '../user/collection';
 import UserModel from '../user/model';
@@ -41,40 +42,59 @@ class ProfileCollection {
     // }
 
     static async findOneByUsername(profileHandle: string): Promise<HydratedDocument<Profile>> {
-        return ProfileModel.findOne({profileHandle: profileHandle});
+        return ProfileModel.findOne({profileHandle: profileHandle}).populate('users');
     }
 
     static async findAllByUser(userId: Types.ObjectId): Promise<Array<HydratedDocument<Profile>>> {
         // const abc = await ProfileModel.find({users: username})
         // const allprofiles = await ProfileModel.find({profileHandle: "spkhowee"});
         // const wrd = await UserModel.find({username: "spkhowee"})
-        return ProfileModel.find({ users: userId }); // Find all profiles that a user belongs to
+        return await ProfileModel.find({ users: userId }).populate('users'); // Find all profiles that a user belongs to
     }
+
+    // static async findAllUsers(profileHandle:string): Promise<Array<HydratedDocument<User>>> {
+    //     const profile = await ProfileModel.findOne({profileHandle: profileHandle}).populate('users');
+    //     const users = profile.users;
+    //     return users
+    // }
 
     static async deleteAllByUsername(profileHandle:string): Promise<void> {
         await ProfileModel.deleteMany({profileHandle: profileHandle});
     }
 
     static async updateOne(userId: Types.ObjectId | string, profileDetails: any): Promise<HydratedDocument<Profile>> {
-    // updates can include: change_username, add_user, remove_user  
+        // updates can include: change_username, add_user, remove_user  
         const user = await UserCollection.findOneByUserId(userId);
         const oldUsername = user.username;
-        const personalProfile = await ProfileModel.findOne({users: oldUsername, personal: true});
-
+        const personalProfile = await ProfileModel.findOne({users: user, personal: true});
         if (profileDetails.username) {
             personalProfile.profileHandle = profileDetails.username as string;
         }
 
         if (profileDetails.added_user) {
-            personalProfile.users.push(profileDetails.added_user)
+            const groupusername = profileDetails.username;
+            const groupProfile = await ProfileModel.findOne({profileHandle: groupusername})
+            const addedUser = await UserModel.findOne({username: profileDetails.added_user})
+            groupProfile.users.push(addedUser._id)
+            await groupProfile.save();
+            return groupProfile.populate('users')
         }
 
-        if (profileDetails.removed_user) {
-            delete personalProfile.users[profileDetails.removed_user]
+        if (profileDetails.removed_user) { //fix
+            const groupusername = profileDetails.username;
+            const groupProfile = await ProfileModel.findOne({profileHandle: groupusername});
+            const removedUser = await UserModel.findOne({username: profileDetails.removed_user});
+            const i = groupProfile.users.indexOf(removedUser._id);
+            if (i > -1) {
+                groupProfile.users.splice(i, 1);
+            }
+            
+            await groupProfile.save();
+            return groupProfile.populate('users');
         }
 
         await personalProfile.save();
-        return personalProfile
+        return personalProfile.populate('users')
 
     }
 }

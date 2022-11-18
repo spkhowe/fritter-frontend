@@ -3,7 +3,7 @@
 
 <template>
   <form @submit.prevent="submit">
-    <h3>{{ title }}</h3>
+    <!-- <h3>{{ title }}</h3> -->
     <article
       v-if="fields.length"
     >
@@ -11,7 +11,7 @@
         v-for="field in fields"
         :key="field.id"
       >
-        <label :for="field.id">{{ field.label }}:</label>
+        <label :for="field.id">{{ field.label }}</label>
         <textarea
           v-if="field.id === 'content'"
           :name="field.id"
@@ -33,7 +33,7 @@
     <button
       type="submit"
     >
-      {{ title }}
+      <h1>{{ title }}</h1>
     </button>
     <section class="alerts">
       <article
@@ -117,7 +117,9 @@ export default {
 
 <style scoped>
 form {
-  border: 1px solid #111;
+  border: 0px solid #111;
+  background: rgb(128, 187, 255);
+  margin-top: 30px;
   padding: 0.5rem;
   display: flex;
   flex-direction: column;
@@ -138,6 +140,7 @@ form > article p {
 form h3,
 form > * {
   margin: 0.3em 0;
+  color: black;
 }
 
 form h3 {
@@ -147,5 +150,15 @@ form h3 {
 textarea {
    font-family: inherit;
    font-size: inherit;
+}
+
+button {
+  color: white;
+  background: rgb(0, 119, 255);
+  border-width: 0px;
+}
+
+button:hover {
+  color:yellow
 }
 </style>

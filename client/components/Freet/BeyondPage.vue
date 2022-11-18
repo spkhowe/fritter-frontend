@@ -25,16 +25,16 @@
       <header>
         <div class="left">
           <h2>
-            <!-- Viewing all freets -->
+            <!-- Beyond Feed -->
             <!-- <span v-if="$store.state.filter">
               by @{{ $store.state.filter }}
             </span> -->
           </h2>
-          <button @click="homeFeed">
+          <button style="background-color:lightgrey" @click="homeFeed">
             Home Feed
           </button>
-          <button style="background-color:lightgrey" @click="beyondFeed">
-            Beyond Page
+          <button @click="beyondFeed">
+            Beyond Feed
           </button>
         </div>
         <div class="right">
@@ -130,14 +130,15 @@ button {
   background: rgb(0, 119, 255);
   border-width: 0px;
   padding: 7% 20%;
-  margin: 5%
+  margin: 5%;
 }
-button:hover {
-  color: yellow
-}
+
 section .scrollbox {
   flex: 1 0 50vh;
   padding: 3%;
   overflow-y: scroll;
+}
+button:hover {
+  color: yellow
 }
 </style>

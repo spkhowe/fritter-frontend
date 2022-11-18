@@ -4,6 +4,7 @@ import FreetCollection from '../freet/collection';
 import FavoriteCollection from '../favorite/collection';
 import ProfileModel from './model';
 import ProfileCollection from './collection';
+import UserCollection from '../user/collection';
 import UserModel from '../user/model';
 
 
@@ -30,6 +31,45 @@ const requiredInformation = async (req: Request, res: Response, next: NextFuncti
   next();
 };
 
+const isValidChange = async (req:Request, res:Response, next:NextFunction) => {
+  if (!req.body.username) {
+    res.status(400).json({
+      error: 'Provided username must be nonempty'
+    })
+  }
+  const groupUsername = req.body.username;
+  const groupProfile = await ProfileCollection.findOneByUsername(groupUsername)
+  if (req.body.added_user) {
+    // check that this user isn't already in the profile 
+    const users = []
+    for (let i of groupProfile.users) {
+      const user = await UserCollection.findOneByUserId(i);
+      users.push(user.username)
+    }
+    if (users.includes(req.body.added_user)) {
+      res.status(400).json({
+        error: 'This user is already in your group'
+      })
+    }
+    next();
+    return
+  }
+  else if (req.body.removed_user) {
+    const users = []
+    for (let i of groupProfile.users) {
+      const user = await UserCollection.findOneByUserId(i);
+      users.push(user.username)
+    }
+    if (!users.includes(req.body.removed_user)) {
+      res.status(400).json({
+        error: 'This user is not in this group'
+      })
+    }
+    next();
+    return
+  }
+}
+
 /**
  * Checks if a user with userId as username in req.query exists
  */
@@ -51,7 +91,6 @@ const requiredInformation = async (req: Request, res: Response, next: NextFuncti
       });
       return;
     }
-  
     next();             
   };
 
@@ -62,10 +101,15 @@ const requiredInformation = async (req: Request, res: Response, next: NextFuncti
 const isMemberOfProfile = async (req:Request, res:Response, next: NextFunction) => {
     const username = req.params.username || req.body.username || req.query.username;
     const profile = await ProfileCollection.findOneByUsername(username);
-    const profileUsers = profile.users;
+    const profileUsernames = []
+    for (let i of profile.users) {
+      const user = await UserCollection.findOneByUserId(i._id)
+      profileUsernames.push(user.username)
+    }
+    // const usernames = profileUsers.map(i => i.username)
     const userId = req.session.userId;
     const user = await UserModel.findOne({_id: userId});
-    const check = profileUsers.includes(user._id);
+    const check = profileUsernames.includes(user.username);
     if (!check) {
         res.status(403).json({
             error: `You are not a member of this profile.`
@@ -103,5 +147,6 @@ export {
     isProfileExists,
     isMemberOfProfile,
     isNotPersonalProfile,
-    isValidProfile
+    isValidProfile,
+    isValidChange
 }

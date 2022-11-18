@@ -111,7 +111,6 @@ const isAccountExists = async (req: Request, res: Response, next: NextFunction) 
     });
     return;
   }
-
   next();
 };
 
@@ -135,6 +134,7 @@ const isUserLoggedOut = (req: Request, res: Response, next: NextFunction) => {
 const isAuthorExists = async (req: Request, res: Response, next: NextFunction) => {
   if (req.query.username) { // this is really hacky, but this is for GET request for freets...
     next()
+    return;
   }
   if (!req.query.author) {
     res.status(400).json({
@@ -142,7 +142,6 @@ const isAuthorExists = async (req: Request, res: Response, next: NextFunction) =
     });
     return;
   }
-
   const user = await UserCollection.findOneByUsername(req.query.author as string);
   if (!user) {
     res.status(404).json({
